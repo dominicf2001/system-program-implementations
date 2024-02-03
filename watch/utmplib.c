@@ -15,10 +15,10 @@
 #define	NULLUT	((struct utmp *)NULL)
 #define	UTSIZE	(sizeof(struct utmp))
 
-static	char	utmpbuf[NRECS * UTSIZE];		/* storage	*/
-static	int	num_recs;				/* num stored	*/
-static	int	cur_rec;				/* next to go	*/
-static	int	fd_utmp = -1;				/* read from	*/
+static	char utmpbuf[NRECS * UTSIZE];		/* storage	*/
+static	int	 num_recs;				/* num stored	*/
+static	int	 cur_rec;				/* next to go	*/
+static	int	 fd_utmp = -1;				/* read from	*/
 
 /*
  *	buffered reads from /etc/utmp
@@ -49,7 +49,7 @@ utmp_next()
 		return NULLUT;
 	if ( cur_rec==num_recs && utmp_reload()==0 )	/* any more ?	*/
 		return NULLUT;
-					/* get address of next record	 */
+    /* get address of next record	 */
 	recp = ( struct utmp *) &utmpbuf[cur_rec * UTSIZE];
 	cur_rec++;
 	return recp;
