@@ -11,6 +11,7 @@ watch.txt
 #include <fcntl.h>
 #include <utmp.h>
 #include <string.h>
+#include <pwd.h>
 #include "./utmplib.h"
 
 const char **online_lognames;
@@ -140,6 +141,10 @@ int main (int argc, char* argv[]) {
     /*     printf("%d\n", online_watched_lognames[i]); */
     /* } */
 
+    uid_t uid = getuid();
+    struct passwd* passwd = getpwuid(uid);
+    const char* caller_logname = passwd->pw_name;
+
     while (1){
         printf("Checking...\n");
         int online_count = lognames_get_online();
@@ -154,6 +159,12 @@ int main (int argc, char* argv[]) {
             const int was_online = online_watched_lognames[i];
             if (was_online == 1 && is_online == 0){
                 printf("%s logged out\n", watched_logname);
+                if (strcmp(watched_logname, caller_logname) == 0){
+                    free(watched_lognames);
+                    free(online_lognames);
+                    free(online_watched_lognames); 
+                    exit(EXIT_SUCCESS);
+                }
             }
             if (was_online == 0 && is_online == 1){
                 printf("%s logged in\n", watched_logname);                
