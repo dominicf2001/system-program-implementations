@@ -34,15 +34,9 @@ struct flag *flag_find(struct flag*, const char *);
 void flags_print(struct flag*, enum flag_type, struct termios*);
 
 int main() {
-    int fd;
-    if ((fd = open("/dev/tty1" , O_RDWR)) == -1) {
-        perror("Opening tty");
-        return -1;
-    }
-
     struct termios *options = malloc(sizeof(struct termios));
     
-    tcgetattr(fd, options);
+    tcgetattr(STDIN_FILENO, options);
 
     speed_t speed = cfgetospeed(options);
     printf("speed %d baud; ", speed);
@@ -62,7 +56,6 @@ int main() {
     printf("\n");
     
     free(options);
-    close(fd);
 }
 
 int flag_is_enabled(struct flag *flag, struct termios *options){
