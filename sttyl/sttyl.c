@@ -33,27 +33,88 @@ int flag_is_enabled(struct flag*, struct termios*);
 struct flag *flag_find(struct flag*, const char *);
 void flags_print(struct flag*, enum flag_type, struct termios*);
 
-int main() {
+int main(int argc, char *argv[]) {
     struct termios *options = malloc(sizeof(struct termios));
+
+    if (argc == 1) {
+        tcgetattr(STDIN_FILENO, options);
     
-    tcgetattr(STDIN_FILENO, options);
+        speed_t speed = cfgetospeed(options);
+        printf("speed %d baud; ", speed);
 
-    speed_t speed = cfgetospeed(options);
-    printf("speed %d baud; ", speed);
+        // print cflags
+        flags_print(flags, cflag, options);
+        printf("\n");
 
-    // print cflags
-    flags_print(flags, cflag, options);
-    printf("\n");
+        // print iflags
+        flags_print(flags, iflag, options);
+        // print oflags
+        flags_print(flags, oflag, options);
+        printf("\n");
 
-    // print iflags
-    flags_print(flags, iflag, options);
-    // print oflags
-    flags_print(flags, oflag, options);
-    printf("\n");
+        // print lflags
+        flags_print(flags, lflag, options);    
+        printf("\n");   
+    }
+    else {
+        for (int i = 1; i < argc; ++i){
+            int flag_disabled = argv[i][0] == '-';
+            
+            char* flag_name = malloc(sizeof(char) * (strlen(argv[i]) - flag_disabled));
+            strcpy(flag_name, argv[i] + flag_disabled);
 
-    // print lflags
-    flags_print(flags, lflag, options);    
-    printf("\n");
+            printf("name: %s\n", flag_name);
+            struct flag* flag = NULL;
+            if ((flag = flag_find(flags, flag_name)) == NULL){
+                printf("Unknown mode\n");
+                return -1;
+            }
+
+            tcsetattr(STDIN_FILENO, TCSANOW, options);int main(int argc, char *argv[]) {
+    struct termios *options = malloc(sizeof(struct termios));
+
+    if (argc == 1) {
+        tcgetattr(STDIN_FILENO, options);
+    
+        speed_t speed = cfgetospeed(options);
+        printf("speed %d baud; ", speed);
+
+        // print cflags
+        flags_print(flags, cflag, options);
+        printf("\n");
+
+        // print iflags
+        flags_print(flags, iflag, options);
+        // print oflags
+        flags_print(flags, oflag, options);
+        printf("\n");
+
+        // print lflags
+        flags_print(flags, lflag, options);    
+        printf("\n");   
+    }
+    else {
+        for (int i = 1; i < argc; ++i){
+            int flag_disabled = argv[i][0] == '-';
+            
+            char* flag_name = malloc(sizeof(char) * (sizeof(argv[i]) - flag_disabled));
+            strcpy(flag_name, argv[i] + flag_disabled);
+            
+            struct flag* flag = NULL;
+            if ((flag = flag_find(flags, flag_name)) == NULL){
+                printf("Unknown mode\n");
+                return -1;
+            }
+
+            tcsetattr(STDIN_FILENO, TCSANOW, options);
+            free(flag_name);
+        }
+    }
+    
+    free(options);
+}
+        }
+    }
     
     free(options);
 }
