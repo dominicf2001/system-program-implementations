@@ -4,9 +4,21 @@
 #include <fcntl.h>
 #include <termios.h>
 
-//int flags[3][3] = {
-//    {} // cflags
-//};
+enum flag_type {cflag, iflag, oflag};
+
+struct flag {
+    enum flag_type flag_type;
+    const char* flag_name;
+    tcflag_t flag;
+};
+
+#define FLAG_NUM 2
+struct flag flags[FLAG_NUM] = {
+    {cflag, "parenb", PARENB},
+    {cflag, "icanon", ICANON},
+};
+
+int flag_is_enabled(struct flag*, struct termios*);
 
 int main() {
     int fd;
@@ -22,22 +34,36 @@ int main() {
     speed_t speed = cfgetospeed(options);
     printf("speed %d baud; ", speed);
 
-    // c flags
-    int is_parenb = options->c_cflag & PARENB;
-    if (!is_parenb){
-        printf("-");
+    // print flags
+    for (int i = 0; i < FLAG_NUM; ++i){
+        struct flag flag = flags[i];
+        int flag_enabled = flag_is_enabled(&flag, options);
+        if (!flag_enabled)
+            printf("-");
+        printf("%s ", flag.flag_name);
     }
-    printf("parenb ");
-
-    int is_icanon = options->c_cflag & ICANON;
-    if (!is_icanon){
-        printf("-");
-    }
-    printf("icanon ");
-
-
     
     printf("\n");
-
+    
+    free(options);
     close(fd);
+}
+
+int flag_is_enabled(struct flag *flag, struct termios *options){
+    int flag_enabled = 1;
+    
+    switch (flag->flag_type){
+    case cflag:
+        flag_enabled = options->c_cflag & flag->flag;
+        break;
+    case iflag:
+        flag_enabled = options->c_iflag & flag->flag;
+        break;
+    case oflag:
+        flag_enabled = options->c_oflag & flag->flag;
+        break;
+    default:
+        return -1;
+    }
+    return flag_enabled;
 }
