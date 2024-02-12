@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <string.h>
 
 enum flag_type {cflag, iflag, oflag};
 
@@ -19,6 +20,7 @@ struct flag flags[FLAG_NUM] = {
 };
 
 int flag_is_enabled(struct flag*, struct termios*);
+struct flag* flag_find(struct flag*, const char*);
 
 int main() {
     int fd;
@@ -66,4 +68,13 @@ int flag_is_enabled(struct flag *flag, struct termios *options){
         return -1;
     }
     return flag_enabled;
+}
+
+struct flag* flag_find(struct flag* flags, const char* flag_name) {
+    for (int i = 0; i < FLAG_NUM; ++i){
+        if (strcmp(flags[i].flag_name, flag_name) == 0){
+            return &flags[i];
+        }
+    }
+    return NULL;
 }
