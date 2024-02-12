@@ -5,7 +5,7 @@
 #include <termios.h>
 #include <string.h>
 
-enum flag_type {cflag, iflag, oflag};
+enum flag_type {cflag, iflag, oflag, lflag};
 
 struct flag {
     enum flag_type flag_type;
@@ -13,14 +13,25 @@ struct flag {
     tcflag_t flag;
 };
 
-#define FLAG_NUM 2
+#define FLAG_NUM 12
 struct flag flags[FLAG_NUM] = {
     {cflag, "parenb", PARENB},
     {cflag, "icanon", ICANON},
+    {cflag, "hupcl", HUPCL},
+    {iflag, "brkint", BRKINT},
+    {iflag, "inpck", INPCK},
+    {iflag, "icnrl", ICRNL},
+    {iflag, "ixany", IXANY},
+    {oflag, "onlcr", ONLCR},
+    {lflag, "iexten", IEXTEN},
+    {lflag, "echo", ECHO},
+    {lflag, "echoe", ECHOE},
+    {lflag, "echok", ECHOK}
 };
 
 int flag_is_enabled(struct flag*, struct termios*);
-struct flag* flag_find(struct flag*, const char*);
+struct flag *flag_find(struct flag*, const char *);
+void flags_print(struct flag*, enum flag_type, struct termios*);
 
 int main() {
     int fd;
@@ -36,15 +47,18 @@ int main() {
     speed_t speed = cfgetospeed(options);
     printf("speed %d baud; ", speed);
 
-    // print flags
-    for (int i = 0; i < FLAG_NUM; ++i){
-        struct flag flag = flags[i];
-        int flag_enabled = flag_is_enabled(&flag, options);
-        if (!flag_enabled)
-            printf("-");
-        printf("%s ", flag.flag_name);
-    }
-    
+    // print cflags
+    flags_print(flags, cflag, options);
+    printf("\n");
+
+    // print iflags
+    flags_print(flags, iflag, options);
+    // print oflags
+    flags_print(flags, oflag, options);
+    printf("\n");
+
+    // print lflags
+    flags_print(flags, lflag, options);    
     printf("\n");
     
     free(options);
@@ -52,7 +66,7 @@ int main() {
 }
 
 int flag_is_enabled(struct flag *flag, struct termios *options){
-    int flag_enabled = 1;
+    int flag_enabled = 0;
     
     switch (flag->flag_type){
     case cflag:
@@ -63,6 +77,9 @@ int flag_is_enabled(struct flag *flag, struct termios *options){
         break;
     case oflag:
         flag_enabled = options->c_oflag & flag->flag;
+        break;
+    case lflag:
+        flag_enabled = options->c_lflag & flag->flag;
         break;
     default:
         return -1;
@@ -77,4 +94,17 @@ struct flag* flag_find(struct flag* flags, const char* flag_name) {
         }
     }
     return NULL;
+}
+
+void flags_print(struct flag* flags, enum flag_type flag_type, struct termios* options){ 
+    for (int i = 0; i < FLAG_NUM; ++i){
+        if (flags[i].flag_type != flag_type)
+            continue;
+        
+        struct flag flag = flags[i];
+        int flag_enabled = flag_is_enabled(&flag, options);
+        if (!flag_enabled)
+            printf("-");
+        printf("%s ", flag.flag_name);
+    }
 }
