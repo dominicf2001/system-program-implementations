@@ -60,6 +60,7 @@ int main(int argc, char *argv[]) {
         printf("\n");
 
         ccs_print(ccs, options);
+        printf("\n");
 
         // print iflags
         flags_print(flags, iflag, options);
@@ -93,6 +94,22 @@ int main(int argc, char *argv[]) {
 
             if (is_flag){
                 flag_set(flag, option_disabled, options);
+            }
+
+            if (is_cc){
+                --argc; ++argv;
+                if (argc < 1){
+                    fprintf(stderr, "Incorrect control character format\n");
+                    return -1;
+                }
+                cc_t code;
+                if ((*argv)[0] == '^' && (*argv)[1] > 'A' && (*argv)[1] < 'Z'){
+                    code = (*argv)[1] - '@';
+                }
+                else {
+                    code = atoi(*argv);
+                }
+                options->c_cc[cc->c_cc] = code;
             }
             
             if (tcsetattr(STDIN_FILENO, TCSANOW, options) == -1){
