@@ -37,7 +37,9 @@ struct cc ccs[CC_NUM] = {
 int flag_is_enabled(struct flag*, struct termios*);
 struct flag *flag_find(struct flag *, const char *);
 struct cc *cc_find(struct cc*, const char *);
-void flags_print(struct flag*, enum flag_type, struct termios*);
+void flags_print(struct flag *, enum flag_type, struct termios *);
+void ccs_print(struct cc *, struct termios *);
+void flag_set(struct flag*, int, struct termios*);
 
 int main(int argc, char *argv[]) {
     struct termios *options = malloc(sizeof(struct termios));
@@ -57,6 +59,8 @@ int main(int argc, char *argv[]) {
         flags_print(flags, cflag, options);
         printf("\n");
 
+        ccs_print(ccs, options);
+
         // print iflags
         flags_print(flags, iflag, options);
         // print oflags
@@ -68,11 +72,13 @@ int main(int argc, char *argv[]) {
         printf("\n");   
     }
     else {
-        for (int i = 1; i < argc; ++i){
-            int option_disabled = (argv[i][0] == '-');
+        while (--argc){
+            ++argv;
             
-            char* option_name = malloc(sizeof(char) * (strlen(argv[i]) - option_disabled));
-            strcpy(option_name, argv[i] + option_disabled);
+            int option_disabled = (*argv[0] == '-');
+            
+            char* option_name = malloc(sizeof(char) * (strlen(*argv) - option_disabled));
+            strcpy(option_name, *argv + option_disabled);
 
             struct flag* flag = flag_find(flags, option_name);
             struct cc* cc = cc_find(ccs, option_name);
@@ -86,32 +92,7 @@ int main(int argc, char *argv[]) {
             }
 
             if (is_flag){
-                switch (flag->flag_type){
-                case cflag:
-                    if (option_disabled)
-                        options->c_cflag &= ~flag->flag;
-                    else 
-                        options->c_cflag |= flag->flag;
-                    break;
-                case iflag:
-                    if (option_disabled)
-                        options->c_iflag &= ~flag->flag;
-                    else
-                        options->c_iflag |= flag->flag;
-                    break;
-                case oflag:
-                    if (option_disabled)
-                        options->c_oflag &= ~flag->flag;
-                    else
-                        options->c_oflag |= flag->flag;
-                    break;
-                case lflag:
-                    if (option_disabled)
-                        options->c_lflag &= ~flag->flag;
-                    else
-                        options->c_lflag |= flag->flag;
-                    break;
-                }
+                flag_set(flag, option_disabled, options);
             }
             
             if (tcsetattr(STDIN_FILENO, TCSANOW, options) == -1){
@@ -176,4 +157,54 @@ void flags_print(struct flag* flags, enum flag_type flag_type, struct termios* o
             printf("-");
         printf("%s ", flag.flag_name);
     }
+}
+
+void ccs_print(struct cc * ccs, struct termios * options) {
+    for (int i = 0; i < CC_NUM; ++i){
+        struct cc cc = ccs[i];
+        cc_t code = options->c_cc[cc.c_cc];
+        printf("%s = ", cc.c_name);
+        if (code >= 0 && code < 32){
+            printf("^%c ", code + '@');
+        }
+        else if (code == 127){
+            printf("^? ");
+        }
+        else if (code >= 32 && code < 127){
+            printf("%c ", code);
+        }
+        else {
+            printf("0x%X ", code);
+        }
+    }
+}
+
+void flag_set(struct flag* flag, int disable, struct termios* options){
+    switch (flag->flag_type){
+    case cflag:
+        if (disable)
+            options->c_cflag &= ~flag->flag;
+        else 
+            options->c_cflag |= flag->flag;
+        break;
+    case iflag:
+        if (disable)
+            options->c_iflag &= ~flag->flag;
+        else
+            options->c_iflag |= flag->flag;
+        break;
+    case oflag:
+        if (disable)
+            options->c_oflag &= ~flag->flag;
+        else
+            options->c_oflag |= flag->flag;
+        break;
+    case lflag:
+        if (disable)
+            options->c_lflag &= ~flag->flag;
+        else
+            options->c_lflag |= flag->flag;
+        break;
+    }
+    
 }
