@@ -18,9 +18,9 @@ struct cc {
     cc_t c_cc;
 };
 
-#define FLAG_NUM 12
+#define FLAG_NUM 11
 struct flag flags[FLAG_NUM] = {
-    {cflag, "parenb", PARENB}, {cflag, "icanon", ICANON},
+    {cflag, "icanon", ICANON},
     {cflag, "hupcl", HUPCL},   {iflag, "brkint", BRKINT},
     {iflag, "inpck", INPCK},   {iflag, "icnrl", ICRNL},
     {iflag, "ixany", IXANY},   {oflag, "onlcr", ONLCR},
@@ -73,8 +73,6 @@ int main(int argc, char *argv[]) {
             
             char* option_name = malloc(sizeof(char) * (strlen(argv[i]) - option_disabled));
             strcpy(option_name, argv[i] + option_disabled);
-
-            printf("Option name: %s\n", option_name);
 
             struct flag* flag = flag_find(flags, option_name);
             struct cc* cc = cc_find(ccs, option_name);
