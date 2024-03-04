@@ -104,6 +104,11 @@ void ball_move(int signum){
 
 int bounce_or_lose(struct ppball *bp){
     int return_val = 0;
+
+    if (paddle_contact(&paddle, bp->y_pos, bp->x_pos)){
+        bp->x_dir = -1;
+        return_val = 1; 
+    }
     
     if (bp->y_pos == TOP_ROW){
         bp->y_dir = 1;

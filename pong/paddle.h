@@ -13,4 +13,5 @@ void paddle_up(struct pppaddle*);
 
 void paddle_down(struct pppaddle*);
 
-void paddle_contact(struct pppaddle*, int, int);
+int paddle_contact(struct pppaddle*, int, int);
+

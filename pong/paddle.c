@@ -34,6 +34,10 @@ void paddle_down(struct pppaddle* paddle){
     paddle->pad_bot += 1;
 }
 
+int paddle_contact(struct pppaddle* paddle, int y, int x) {
+    return x == (paddle->pad_col - 1) && paddle->pad_top <= y && y <= paddle->pad_bot;
+}
+
 void paddle_draw(struct pppaddle* paddle) {
     for (int y = paddle->pad_top; y <= paddle->pad_bot; ++y){
         mvaddch(y, paddle->pad_col, paddle->pad_char);
