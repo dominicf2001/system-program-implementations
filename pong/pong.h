@@ -1,7 +1,9 @@
 #pragma once
 
-#define MIN_TTM 2
-#define MAX_TTM 3
+#define MIN_X_TTM 2
+#define MAX_X_TTM 3
+#define MIN_Y_TTM 1
+#define MAX_Y_TTM 4
 #define BLANK ' '
 #define DFL_SYMBOL 'o'
 #define TOP_ROW 5
@@ -12,9 +14,6 @@
 #define X_INIT 10
 #define Y_INIT 10
 #define TICKS_PER_SEC 50
-
-#define X_TTM 5
-#define Y_TTM 8
 
 struct ppball {
     int y_pos, x_pos,

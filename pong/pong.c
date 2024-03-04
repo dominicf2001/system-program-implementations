@@ -53,8 +53,8 @@ int main(){
 void serve(){
     ball.y_pos = Y_INIT;
     ball.x_pos = X_INIT;
-    ball.y_ttg = ball.y_ttm = MIN_TTM + (rand() % MAX_TTM);
-    ball.x_ttg = ball.x_ttm = MIN_TTM + (rand() % MAX_TTM);
+    ball.y_ttg = ball.y_ttm = MIN_X_TTM + (rand() % MAX_X_TTM);
+    ball.x_ttg = ball.x_ttm = MIN_Y_TTM + (rand() % MAX_Y_TTM);
     ball.y_dir = 1;
     ball.x_dir = 1;
     ball.symbol = DFL_SYMBOL;
@@ -116,6 +116,8 @@ int bounce_or_lose(struct ppball *bp){
     int return_val = 0;
 
     if (paddle_contact(&paddle, bp->y_pos, bp->x_pos)){
+        ball.y_ttg = ball.y_ttm = MIN_X_TTM + (rand() % MAX_X_TTM);
+        ball.x_ttg = ball.x_ttm = MIN_Y_TTM + (rand() % MAX_Y_TTM);
         bp->x_dir = -1;
         return_val = 1; 
     }
