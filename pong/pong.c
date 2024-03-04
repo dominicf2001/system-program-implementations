@@ -5,13 +5,17 @@
 
 #include <bits/time.h>
 #include <curses.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <signal.h>
+#include "./paddle.h"
 #include "./pong.h"
 
 struct ppball ball;
+struct pppaddle paddle;
 void ball_move(int);
 int bounce_or_lose(struct ppball*);
 
@@ -38,10 +42,12 @@ int main(){
 }
 
 void set_up(){
+    srand(getpid());
+    
     ball.y_pos = Y_INIT;
     ball.x_pos = X_INIT;
-    ball.y_ttg = ball.y_ttm = Y_TTM;
-    ball.x_ttg = ball.x_ttm = X_TTM;
+    ball.y_ttg = ball.y_ttm = MIN_TTM + (rand() % MAX_TTM);
+    ball.x_ttg = ball.x_ttm = MIN_TTM + (rand() % MAX_TTM);
     ball.y_dir = 1;
     ball.x_dir = 1;
     ball.symbol = DFL_SYMBOL;
@@ -49,6 +55,9 @@ void set_up(){
     noecho();
     crmode();
 
+    paddle = paddle_init();
+    paddle_draw(&paddle);
+    
     draw_walls();
     
     signal(SIGINT, SIG_IGN);
