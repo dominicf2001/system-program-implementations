@@ -15,6 +15,8 @@ struct ppball ball;
 void ball_move(int);
 int bounce_or_lose(struct ppball*);
 
+void draw_walls();
+
 void set_up();
 void wrap_up();
 
@@ -47,6 +49,8 @@ void set_up(){
     noecho();
     crmode();
 
+    draw_walls();
+    
     signal(SIGINT, SIG_IGN);
     mvaddch(ball.y_pos, ball.x_pos, ball.symbol);
     refresh();
@@ -125,4 +129,19 @@ int set_ticker(int ms) {
     new_timeset.it_value.tv_usec = usecs;
     
     return setitimer(ITIMER_REAL, &new_timeset, NULL);
+}
+
+void draw_walls() {
+    // draw left edge
+    for (int y = TOP_ROW; y < BOT_ROW + 1; ++y){
+        mvaddch(y, LEFT_EDGE - 1 , '|');
+    }
+    // draw top
+    for (int x = LEFT_EDGE - 1; x < RIGHT_EDGE; ++x){
+        mvaddch(TOP_ROW - 1, x , '-');
+    }
+    // draw bottom
+    for (int x = LEFT_EDGE - 1; x < RIGHT_EDGE; ++x){
+        mvaddch(BOT_ROW + 1, x , '-');
+    }
 }
