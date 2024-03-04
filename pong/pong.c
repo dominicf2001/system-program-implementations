@@ -32,10 +32,14 @@ int main(){
     set_up();
 
     while ( (c = getchar()) != 'Q' ){
-        if (c  == 'f') ball.x_ttm--;
-        else if (c  == 's') ball.x_ttm++;
-        else if (c  == 'F') ball.y_ttm--;
-        else if (c  == 'S') ball.y_ttm++;
+        if (c  == 'j') {
+            paddle_up(&paddle);
+            paddle_draw(&paddle);
+        }
+        else if (c  == 'k') {
+            paddle_down(&paddle);
+            paddle_draw(&paddle);
+        };
     }
 
     wrap_up();
