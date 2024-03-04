@@ -16,12 +16,16 @@
 
 struct ppball ball;
 struct pppaddle paddle;
+
+int balls_left = 3;
+
 void ball_move(int);
 int bounce_or_lose(struct ppball*);
 
 void draw_walls();
 
 void set_up();
+void serve();
 void wrap_up();
 
 int set_ticker(int);
@@ -30,8 +34,9 @@ int main(){
     int c = 0;
 
     set_up();
+    serve();
 
-    while ( (c = getchar()) != 'Q' ){
+    while ( balls_left && (c = getchar()) != 'Q' ){        
         if (c  == 'j') {
             paddle_up(&paddle);
             paddle_draw(&paddle);
@@ -45,9 +50,7 @@ int main(){
     wrap_up();
 }
 
-void set_up(){
-    srand(getpid());
-    
+void serve(){
     ball.y_pos = Y_INIT;
     ball.x_pos = X_INIT;
     ball.y_ttg = ball.y_ttm = MIN_TTM + (rand() % MAX_TTM);
@@ -55,9 +58,16 @@ void set_up(){
     ball.y_dir = 1;
     ball.x_dir = 1;
     ball.symbol = DFL_SYMBOL;
+}
+
+void set_up(){
+    srand(getpid());
+    
     initscr();
     noecho();
     crmode();
+
+    mvaddch(5, 5, '0' + balls_left);
 
     paddle = paddle_init();
     paddle_draw(&paddle);
@@ -123,8 +133,11 @@ int bounce_or_lose(struct ppball *bp){
         return_val = 1;
     }
     else if (bp->x_pos == RIGHT_EDGE){
-        bp->x_dir = -1;
-        return_val = 1;
+        return_val = -1;
+        mvaddch(bp->y_pos, bp->x_pos, BLANK);
+        --balls_left;
+        mvaddch(5, 5, '0' + balls_left);
+        serve();
     }
     return return_val;
 }

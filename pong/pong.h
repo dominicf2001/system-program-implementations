@@ -1,7 +1,7 @@
 #pragma once
 
-#define MIN_TTM 3
-#define MAX_TTM 5
+#define MIN_TTM 2
+#define MAX_TTM 3
 #define BLANK ' '
 #define DFL_SYMBOL 'o'
 #define TOP_ROW 5
