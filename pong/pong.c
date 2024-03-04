@@ -36,7 +36,6 @@ int main(){
 }
 
 void set_up(){
-
     ball.y_pos = Y_INIT;
     ball.x_pos = X_INIT;
     ball.y_ttg = ball.y_ttm = Y_TTM;
@@ -98,10 +97,10 @@ int bounce_or_lose(struct ppball *bp){
         return_val = 1;
     }
     if (bp->x_pos == LEFT_EDGE){
-        bp->x_dir = -1;
+        bp->x_dir = 1;
         return_val = 1;
     }
-    else if (bp->y_pos == RIGHT_EDGE){
+    else if (bp->x_pos == RIGHT_EDGE){
         bp->x_dir = -1;
         return_val = 1;
     }
