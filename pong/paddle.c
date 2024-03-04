@@ -15,6 +15,9 @@ struct pppaddle paddle_init() {
 }
 
 void paddle_up(struct pppaddle* paddle){
+    if (paddle->pad_top == TOP_ROW)
+        return;
+    
     mvaddch(paddle->pad_top, paddle->pad_col, BLANK);
     paddle->pad_top -= 1;
     mvaddch(paddle->pad_bot, paddle->pad_col, BLANK);
@@ -22,6 +25,9 @@ void paddle_up(struct pppaddle* paddle){
 }
 
 void paddle_down(struct pppaddle* paddle){
+    if (paddle->pad_bot == BOT_ROW)
+        return;
+    
     mvaddch(paddle->pad_top, paddle->pad_col, BLANK);
     paddle->pad_top += 1;
     mvaddch(paddle->pad_bot, paddle->pad_col, BLANK);
