@@ -23,7 +23,9 @@ char * next_cmd(char *prompt, FILE *fp)
 	int	pos = 0;			/* current position	*/
 	int	c;				/* input char		*/
 
-	printf("%s", prompt);				/* prompt user	*/
+	if (fp == stdin){
+			printf("%s", prompt);				/* prompt user	*/
+	}
 	while( ( c = getc(fp)) != EOF ) {
 		/* need space? */
 		if( pos+1 >= bufspace ){		/* 1 for \0	*/

@@ -15,7 +15,7 @@
 
 #define	DFL_PROMPT	"> "
 
-int main()
+int main(int argc, char** argv)
 {
 	char	*cmdline, *prompt, **arglist;
 	int	result, process(char **);
@@ -24,7 +24,12 @@ int main()
 	prompt = DFL_PROMPT ;
 	setup();
 
-	while ( (cmdline = next_cmd(prompt, stdin)) != NULL ){
+	FILE* cmd_src = stdin;
+	if (argc > 1){
+			cmd_src = fopen(argv[1], "r");	
+	}
+
+	while ( (cmdline = next_cmd(prompt, cmd_src)) != NULL ){
 		if ( (arglist = splitline(cmdline)) != NULL  ){
 			result = process(arglist);
 			freelist(arglist);
