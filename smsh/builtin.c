@@ -37,6 +37,30 @@ int builtin_command(char **args, int *resultp)
 		if ( *resultp != -1 )
 			rv = 1;
 	}
+	else if ( strcmp(args[0], "read") == 0 ){   /* read command */
+		char* varname = args[1];	
+
+		char	*buf;
+		int	bufspace = 0;
+		int	pos = 0;
+		int	c;
+		while( ( c = getc(stdin)) != '\n' ) {
+			if ( c == '\n' )
+				break;
+			if( pos+1 >= bufspace ){
+				if ( bufspace == 0 )
+					buf = emalloc(BUFSIZ);
+				else
+					buf = erealloc(buf,bufspace+BUFSIZ);
+				bufspace += BUFSIZ;
+			}
+
+			buf[pos++] = c;
+		}
+		buf[pos] = '\0';
+
+		VLstore(varname, buf);
+	}
 	else if ( strcmp(args[0], "exit") == 0 ){   /* exit command */
 		int status = 1;
 		if (args[1] != NULL){
