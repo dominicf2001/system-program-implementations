@@ -2,6 +2,7 @@
  * contains the switch and the functions for builtin commands
  */
 
+#include <stdlib.h>
 #include	<stdio.h>
 #include	<string.h>
 #include	<ctype.h>
@@ -35,6 +36,13 @@ int builtin_command(char **args, int *resultp)
 		*resultp = chdir(args[1]);
 		if ( *resultp != -1 )
 			rv = 1;
+	}
+	else if ( strcmp(args[0], "exit") == 0 ){   /* exit command */
+		int status = 1;
+		if (args[1] != NULL){
+			status = atoi(args[1]);
+		}
+		exit(status);
 	}
 	else if ( strcmp(args[0], "export") == 0 ){
 		if ( args[1] != NULL && okname(args[1]) )
