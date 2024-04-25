@@ -8,6 +8,37 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	"smsh.h"
+#include "varlib.h"
+
+char* replace_vars(char* str){
+	char* new_str = emalloc(BUFSIZ);
+	int i = 0, k = 0;
+	while (str[i] != '\0'){
+		if (str[i] == '$'){
+			++i;
+			char* varname = emalloc(BUFSIZ);
+			int j = 0;
+			while (str[i] != '\0' && str[i] != ' ' && 
+						str[i] != '\n' && str[i] != '$' && str[i] != '.'){
+				varname[j] = str[i];	
+				++j; ++i;
+			}
+			varname[j] = '\0';
+			char* varvalue = VLlookup(varname);
+
+			j = 0;
+			while (varvalue[j] != '\0') {
+				new_str[k] = varvalue[j];
+				++j; ++k;
+			}
+		}
+		
+		new_str[k] = str[i];
+		++i; ++k;
+	}
+	new_str[k] = '\0';
+	return new_str;
+}
 
 char * next_cmd(char *prompt, FILE *fp)
 /*
@@ -46,7 +77,7 @@ char * next_cmd(char *prompt, FILE *fp)
 	if ( c == EOF && pos == 0 )		/* EOF and no input	*/
 		return NULL;			/* say so		*/
 	buf[pos] = '\0';
-	return buf;
+	return replace_vars(buf);
 }
 
 /**
