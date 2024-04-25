@@ -14,7 +14,15 @@ char* replace_vars(char* str){
 	char* new_str = emalloc(BUFSIZ);
 	int i = 0, k = 0;
 	while (str[i] != '\0'){
-		if (str[i] == '$'){
+		int unspecial = 0;
+		if (str[i] == '\\'){
+			unspecial = 1;	
+			if (str[++i] == '\0'){
+				break;
+			}
+		}
+		
+		if (str[i] == '$' && !unspecial){
 			++i;
 			char* varname = emalloc(BUFSIZ);
 			int j = 0;
