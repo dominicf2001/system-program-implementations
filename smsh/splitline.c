@@ -27,7 +27,7 @@ char* replace_vars(char* str){
 			char* varname = emalloc(BUFSIZ);
 			int j = 0;
 			while (str[i] != '\0' && str[i] != ' ' && 
-						str[i] != '\n' && str[i] != '$' && str[i] != '.'){
+						str[i] != '\n' && str[i] != '$' && str[i] != '.' && str[i] != '/'){
 				varname[j] = str[i];	
 				++j; ++i;
 			}

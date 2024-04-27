@@ -5,6 +5,7 @@
 #include	<sys/wait.h>
 #include	"smsh.h"
 #include	"varlib.h"
+#include "stack.h"
 
 /**
  **	small-shell version 4
@@ -18,7 +19,7 @@
 int main(int argc, char** argv)
 {
 	char	*cmdline, *prompt, **arglist;
-	int	result, process(char **);
+	int	result, process(char **, struct StackFrame**);
 	void	setup();
 
 	prompt = DFL_PROMPT ;
@@ -29,13 +30,17 @@ int main(int argc, char** argv)
 			cmd_src = fopen(argv[1], "r");	
 	}
 
+	struct StackFrame** stack = emalloc(MAX_STACK_SIZE * sizeof(struct StackFrame*));
+	stack[0] = 0;
+
 	while ( (cmdline = next_cmd(prompt, cmd_src)) != NULL ){
 		if ( (arglist = splitline(cmdline)) != NULL  ){
-			result = process(arglist);
+			result = process(arglist, stack);
 			freelist(arglist);
 		}
 		free(cmdline);
 	}
+	free(stack);
 	return 0;
 }
 
