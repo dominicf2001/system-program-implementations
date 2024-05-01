@@ -26,7 +26,9 @@ enum PLAY_STATE play_state = WAIT;
 struct ppball ball;
 struct pppaddle paddle;
 
-int balls_left = 3;
+int connfd;
+
+int balls_left = 10;
 
 void ball_move(int);
 int bounce_or_lose(struct ppball*);
@@ -38,6 +40,7 @@ int execute(char*);
 void serve();
 void wrap_up();
 char** split(char*);
+void ball_clear(struct ppball*);
 
 int set_ticker(int);
 
@@ -71,7 +74,6 @@ int main(int argc, char** argv) {
     server_addr.sin_port = htons(1234);
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    int connfd;
     if (host_type == SERVER){        
         if (bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
             perror("Failed to bind socket\n");
@@ -98,7 +100,7 @@ int main(int argc, char** argv) {
         char** cmd_name_arr = split(res);
 
         if (strcmp(cmd_name_arr[0], "NAME") != 0){
-            printf("SPPBTP introduction failed: Unexpected command\n");
+            printf("SPPBTP Unexpected command: %s\n", res);
             exit(1);
         }
         free(cmd_name_arr);
@@ -119,7 +121,7 @@ int main(int argc, char** argv) {
         char** cmd_welcome_arr = split(res);
 
         if (strcmp(cmd_welcome_arr[0], "HELO") != 0){
-            printf("SPPBTP introduction failed: Unexpected command\n");
+            printf("SPPBTP Unexpected command: %s\n", res);
             exit(1);
         }
 
@@ -146,7 +148,10 @@ int main(int argc, char** argv) {
                 char cmd[BUFFER_SIZE] = { 0 };
                 read(connfd, cmd, BUFFER_SIZE - 1);
 
-                execute(cmd);
+                if (execute(cmd) == -1) {
+                    printf("SPPBTP execute failed: %s\n", cmd);
+                    exit(1);
+                };
             }
             break;
 
@@ -173,6 +178,17 @@ int execute(char* cmd) {
     int status = -1;
     char** cmd_arr = split(cmd);
     char* cmd_name = cmd_arr[0];
+
+    // BALL [ypos] [xttm] [yttm] [ydir]
+    if (strcmp(cmd_name, "BALL") == 0) {
+        ball.y_pos = atoi(cmd_arr[1]);
+        ball.x_ttm = atoi(cmd_arr[2]);
+        ball.y_ttm = atoi(cmd_arr[3]);
+        ball.y_dir = atoi(cmd_arr[4]);
+
+        play_state = PLAY;
+        status = 0;
+    }
 
     free(cmd_arr);
     return status;
@@ -269,7 +285,13 @@ int bounce_or_lose(struct ppball *bp) {
         return_val = 1;
     }
     if (bp->x_pos == non_losing_edge){
-        bp->x_dir = -bp->x_dir;
+        char cmd_ball[BUFFER_SIZE] = { 0 };
+        sprintf(cmd_ball, "BALL %d %d %d %d", 
+            ball.y_pos, ball.x_ttm, ball.y_ttm, ball.y_dir);
+        write(connfd, cmd_ball, BUFFER_SIZE);
+
+        ball_clear(&ball);
+        play_state = WAIT;
         return_val = 1;
     }
     else if (bp->x_pos == losing_edge){
@@ -306,13 +328,13 @@ void draw_walls() {
     if (host_type == CLIENT){
         // draw left edge
         for (int y = TOP_ROW; y < BOT_ROW + 1; ++y){
-            mvaddch(y, LEFT_EDGE - 1 , '|');
+            mvaddch(y, LEFT_EDGE - 1 , '.');
         }
     }
     else if (host_type == SERVER) {
         // draw right edge
         for (int y = TOP_ROW; y < BOT_ROW + 1; ++y){
-            mvaddch(y, RIGHT_EDGE - 1 , '|');
+            mvaddch(y, RIGHT_EDGE - 1 , '.');
         }
     }
     // draw top
@@ -336,3 +358,8 @@ char** split(char* str) {
     split_arr[i] = NULL;
     return split_arr;
 }
+
+void ball_clear(struct ppball* ball) {
+    memset(ball, 0, sizeof(struct ppball) - sizeof(char));
+}
+

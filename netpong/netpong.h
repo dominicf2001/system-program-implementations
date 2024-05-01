@@ -25,3 +25,5 @@ struct ppball {
         y_dir, x_dir;
     char symbol;
 };
+
+void hide_ball(struct ppball);

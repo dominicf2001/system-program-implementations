@@ -1,6 +1,6 @@
 #include "curses.h"
 #include "./paddle.h"
-#include "./pong.h"
+#include "./netpong.h"
 
 struct pppaddle paddle_init() {
     struct pppaddle paddle = {
