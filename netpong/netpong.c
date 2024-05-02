@@ -16,6 +16,7 @@
 #include <netinet/in.h>
 #include "./paddle.h"
 #include "netpong.h"
+#include <fcntl.h>
 
 #define BUFFER_SIZE 100
 
@@ -46,7 +47,7 @@ int set_ticker(int);
 
 int main(int argc, char** argv) {
     if (argc != 2){
-        printf("Invalid arguments");
+        printf("Invalid arguments\n");
         return 1;
     }
     
@@ -57,6 +58,9 @@ int main(int argc, char** argv) {
         host_type = SERVER;
     }
 
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
     // networking setup
     // ----
 
@@ -65,6 +69,13 @@ int main(int argc, char** argv) {
     if (sockfd == -1){
         perror("Failed to open socket\n");
         exit(1);   
+    }
+
+    int optval = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
+        perror("setsockopt(SO_REUSEADDR) failed");
+        close(sockfd);
+        exit(1);
     }
 
     // setup server address
@@ -117,7 +128,6 @@ int main(int argc, char** argv) {
 
         char res[BUFFER_SIZE] = { 0 };
         read(connfd, res, BUFFER_SIZE - 1);
-
         char** cmd_welcome_arr = split(res);
 
         if (strcmp(cmd_welcome_arr[0], "HELO") != 0){
@@ -146,15 +156,14 @@ int main(int argc, char** argv) {
         case WAIT:
             {
                 char cmd[BUFFER_SIZE] = { 0 };
-                read(connfd, cmd, BUFFER_SIZE - 1);
+                int bytes_read = read(connfd, cmd, BUFFER_SIZE - 1);
 
-                if (execute(cmd) == -1) {
+                if (bytes_read > 1 && execute(cmd) == -1) {
                     printf("SPPBTP execute failed: %s\n", cmd);
                     exit(1);
                 };
             }
             break;
-
         case PLAY:
             {
                 if (c  == 'k') {
@@ -181,16 +190,22 @@ int execute(char* cmd) {
 
     // BALL [ypos] [xttm] [yttm] [ydir]
     if (strcmp(cmd_name, "BALL") == 0) {
+        ball.x_pos = host_type == CLIENT ?
+            LEFT_EDGE + 2 :
+            RIGHT_EDGE - 2;
         ball.y_pos = atoi(cmd_arr[1]);
-        ball.x_ttm = atoi(cmd_arr[2]);
-        ball.y_ttm = atoi(cmd_arr[3]);
+        ball.x_ttg = ball.x_ttm = atoi(cmd_arr[2]);
+        ball.y_ttg = ball.y_ttm = atoi(cmd_arr[3]);
         ball.y_dir = atoi(cmd_arr[4]);
+        ball.x_dir = host_type == CLIENT ?
+            1 :
+            -1;
 
         play_state = PLAY;
         status = 0;
     }
 
-    free(cmd_arr);
+    // free(cmd_arr);
     return status;
 }
 
@@ -205,7 +220,6 @@ void serve() {
     ball.x_dir = host_type == CLIENT ?
         1 :
         -1;
-    ball.symbol = DFL_SYMBOL;
 }
 
 void set_up() {
@@ -216,6 +230,8 @@ void set_up() {
     crmode();
 
     mvaddch(5, 5, '0' + balls_left);
+
+    ball.symbol = DFL_SYMBOL;
 
     paddle = paddle_init(host_type);
     paddle_draw(&paddle);
@@ -286,8 +302,7 @@ int bounce_or_lose(struct ppball *bp) {
     }
     if (bp->x_pos == non_losing_edge){
         char cmd_ball[BUFFER_SIZE] = { 0 };
-        sprintf(cmd_ball, "BALL %d %d %d %d", 
-            ball.y_pos, ball.x_ttm, ball.y_ttm, ball.y_dir);
+        sprintf(cmd_ball, "BALL %d %d %d %d\n", ball.y_pos, ball.x_ttm, ball.y_ttm, ball.y_dir);
         write(connfd, cmd_ball, BUFFER_SIZE);
 
         ball_clear(&ball);
@@ -360,6 +375,12 @@ char** split(char* str) {
 }
 
 void ball_clear(struct ppball* ball) {
-    memset(ball, 0, sizeof(struct ppball) - sizeof(char));
+    mvaddch(ball->y_pos, ball->x_pos , BLANK);
+    ball->x_dir = 1;
+    ball->y_dir = 1;
+    ball->x_pos = 0;
+    ball->y_pos = 0;
+    ball->x_ttm = ball->x_ttg = 0;
+    ball->y_ttm = ball->y_ttg = 0;
 }
 
